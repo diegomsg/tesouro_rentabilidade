@@ -1,0 +1,131 @@
+---
+title: "Meus Investimentos"
+subtitle: "Análise dos investimentos em Tesouro Direto"
+author: "Diego Guimarães"
+date: today
+date-format: "DD/MM/YYYY"
+format: html
+embed-resources: true
+theme: sandstone
+toc: true
+toc-title: "Conteúdo"
+tbl-cap-location: top
+fig-responsive: false
+editor: visual
+text-align: justify
+execute:
+  echo: false
+  warning: false
+lang: pt-BR
+---
+
+```{css, echo = FALSE}
+.paragrafo {
+  text-align: justify !important
+}
+```
+
+## Tesouro Direto
+
+O Tesouro Direto é um programa do Tesouro Nacional desenvolvido em parceria com a B3 para a venda de títulos públicos federais para pessoas físicas, através da internet. Saiba mais.
+
+### Tipos de Papéis do Tesouro Direto
+
+Existem diferentes tipos de papéis disponíveis no Tesouro Direto, cada um com características próprias:
+
+-   **Tesouro Selic (LFT)**: título pós-fixado cuja rentabilidade segue a variação da taxa Selic.
+-   **Tesouro Prefixado (LTN)**: título com rentabilidade definida no momento da compra.
+-   **Tesouro IPCA+ (NTN-B Principal)**: título com rentabilidade real acima da inflação medida pelo IPCA.
+
+### Variação a Preço de Mercado
+
+Os títulos do Tesouro Direto são negociados diariamente a preços de mercado, o que significa que podem apresentar variação positiva ou negativa antes do vencimento.
+
+### Rendimento até o Vencimento
+
+Se mantidos até o vencimento, os títulos do Tesouro Direto garantem ao investidor a rentabilidade contratada no momento da compra, independente das variações de mercado.
+
+## Análise dos Investimentos
+
+A seguir, apresentamos os resultados da análise dos investimentos no Tesouro Direto com base nos dados fornecidos.
+
+### Origem dos Dados
+
+Têm como base extratos obtidos mensalmente a partir do portal do Tesouro Direto de 01/2022 em diante.
+
+```{r setup, include=FALSE}
+#| label: Setup
+
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(plotly)
+
+# Carrega funções
+source("../src/quarto_print.R")
+source("../src/utils.R")
+
+# Abre dados
+#extatos_df <- tibble()
+#atualizacao <- list()
+
+# Carrega dados
+source("../src/load_extratos.R")
+
+# Opções
+options(digits = 2, OutDec = ",")
+```
+
+-   Última atualização: `r format(atualizacao$mes, "%d/%m/%Y")`
+-   Últimos dados: `r format(atualizacao$data, "%d/%m/%Y %H:%M")`
+
+### Tabela de Investimentos
+
+```{r}
+#| label: Extrato
+
+atual <- extratos_df |>
+  filter(mes_ref == atualizacao$mes) |>
+  select(Papel = papel,
+         Vencimento = vencimento,
+         Aplicado = vr_aplicado,
+         Bruto = vr_bruto,
+         `Líquido` = vr_liquido,
+         `Rendimento bruto` = var_bruta_acum,
+         `Rendimento líquido` = var_liq_acum) |>
+  ungroup()
+
+atual
+```
+
+### Rendimento
+
+-   Valor investido: `r tail(extratos_df$vr_aplicado, 1) |> as_currency_real()`
+-   Acumulado bruto: `r tail(extratos_df$vr_bruto, 1) |> as_currency_real()`
+-   Acumulado líquido: `r tail(extratos_df$vr_liquido, 1) |> as_currency_real()`
+-   Rendimento líquido: `r tail(extratos_df$vr_aplicado, 1) |> as_currency_real()`
+
+### Distribuição dos Papéis
+
+```{r}
+#| label: Distribuição
+
+atual %>%
+  filter(Papel != "Total") |>
+  plot_ly(labels = ~Papel, values = ~Bruto, type = 'pie')
+```
+
+### Gráfico de Evolução Acumulada
+
+```{r}
+#| label: Evolução
+
+extratos_df |>
+  rename(`mês` = mes_ref) |>
+  filter(papel == "Total") |>
+  plot_ly(x = ~mês, y = ~vr_bruto,
+          name = "Bruto",
+          type = 'scatter', mode = 'lines', width = 4) |>
+  add_trace(x = ~mês, y = ~vr_liquido, name = "Líquido")
+
+```
