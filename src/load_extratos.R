@@ -9,8 +9,9 @@ require(tidyverse)
 
 # parametros --------------------------------------------------------------
 
-extratos_folder <- "C:/Users/diego/OneDrive/Documentos/finanças/investimentos/corretagem/tesouro direto"
-arq_nome_ini <- "ExtratoConsolidado_DIEGO MOURA SILVA GUIMARAES_"
+config <- config::get()
+extratos_folder <- config$folder
+arq_nome_ini <- config$start_name
 
 
 # dependencias ------------------------------------------------------------
