@@ -3,5 +3,7 @@
 .RData
 .Ruserdata
 config.yml
-output/
+output/*.html
 report/*.html
+report/*.rmd
+report/*.rmarkdown
